@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongodepl
+spec:
+  replicas: 3
+  serviceName: mongo-service
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      terminationGracePeriodSeconds: 50
+      containers:
+      - name: mongocon
+        image: mongo
+        command:
+        - "mongod"
+        - "--bind_ip"
+        - "0.0.0.0"
+        - "--replSet"
+        - "MainRepSet"
+        ports:
+        - containerPort: 27017
+        resources:
+          requests:
+            cpu: 500m
+            memory: 128Mi
+          limits:
+            cpu: 1000m
+            memory: 256Mi
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: spring-config
+              key: mongodbinit_root_username
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: spring-config
+              key: mongodbinit_root_password
+        volumeMounts:
+        - mountPath: /data/db
+          name: sprong-vol
+  volumeClaimTemplates:
+  - metadata:
+      name: sprong-vol
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "standard"
+      resources:
+        requests:
+          storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-service
+spec:
+  clusterIP: None
+  selector:
+    app: mongo
+  ports:
+  - port: 27017
+    targetPort: 27017
+
+#        hostaname -f   #Know the hostname
+#        mongodepl-0.mongo-service.default.svc.cluster.local # This is my host name
+#        rs.status();     #Find the reple status linke primary secondary
+#        
+
+         # Using the below command we need to initiate the repleset on mogodb
+#        rs.initiate( {
+#           _id : "MainRepSet",
+#           members: [
+#              { _id: 0, host: "mongodepl-0.mongo-service.default.svc.cluster.local:27017" },
+#              { _id: 1, host: "mongodepl-0.mongo-service.default.svc.cluster.local:27017" },
+#              { _id: 2, host: "mongodepl-0.mongo-service.default.svc.cluster.local:27017" }
+#           ]
+#        })
+#        
+
+          #create the databse user with the admin privilages using the below command
+#        db.getSiblingDB("admin").createUser( {user: "devdb",pwd : "devdb123",roles: [ { role: "root", db: "admin" } ] } );
+#        kubectl exec -it mongodepl-0 /bin/bash
+         
+
+         #Connec the database in inside the container
+#        mongosh --host localhost:27017 --username: devdb --password: devdb123
+#         show databases   #Display the databases in the mongo
+#         use users        # connect to the databse
+#         db.users.find();  # Show the data inside the users database

@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: spring-app
+spec:
+  replicas: 2
+  selector:
+    app: spring-app
+  template:
+    metadata:
+      name: spring-app
+      labels:
+        app: spring-app
+    spec:
+      containers:
+      - name: nginx
+        image: larasai/spring-boot-mongo
+        ports:
+        - containerPort: 8080

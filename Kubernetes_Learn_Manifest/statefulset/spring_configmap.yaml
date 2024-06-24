@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: spring-config
+data:
+  mongodbinit_root_username: devdb
+  mongodbinit_root_password: devdb@123
+  mongo_db_username: devdb
+  mongo_db_password: devdb@123
+  mongo_db_hostname: mongo-service
